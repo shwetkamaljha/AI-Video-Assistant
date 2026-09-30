@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import os
 from dotenv import load_dotenv
 from utils.audio_processor import process_input
 from core.transcriber import transcribe_all
@@ -24,18 +25,18 @@ st.markdown("""
 
 /* ── Root Variables ── */
 :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface-2: #1a1a25;
-    --border: #2a2a3a;
-    --accent: #7c3aed;
-    --accent-glow: #9f67ff;
-    --accent-2: #06b6d4;
-    --text: #e8e8f0;
-    --text-muted: #7070a0;
-    --success: #10b981;
+    --bg: #071a1f;
+    --surface: #0c2a31;
+    --surface-2: #103640;
+    --border: #1f5561;
+    --accent: #14b8a6;
+    --accent-glow: #5eead4;
+    --accent-2: #fbbf24;
+    --text: #f1f5f9;
+    --text-muted: #9fb8c0;
+    --success: #34d399;
     --warning: #f59e0b;
-    --danger: #ef4444;
+    --danger: #f87171;
 }
 
 /* ── Global Reset ── */
@@ -56,8 +57,8 @@ html, body, [class*="css"] {
     top: 0; left: 0;
     width: 100%; height: 100%;
     background-image:
-        linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+        linear-gradient(rgba(20, 184, 166, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 184, 166, 0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     pointer-events: none;
     z-index: 0;
@@ -131,7 +132,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--accent-glow);
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
@@ -155,9 +156,9 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase;
 }
 
-.badge-purple { background: rgba(124,58,237,0.2); color: var(--accent-glow); border: 1px solid rgba(124,58,237,0.3); }
-.badge-cyan   { background: rgba(6,182,212,0.15); color: var(--accent-2);    border: 1px solid rgba(6,182,212,0.3); }
-.badge-green  { background: rgba(16,185,129,0.15); color: var(--success);    border: 1px solid rgba(16,185,129,0.3); }
+.badge-purple { background: rgba(20,184,166,0.2);  color: var(--accent-glow); border: 1px solid rgba(20,184,166,0.4); }
+.badge-cyan   { background: rgba(251,191,36,0.15); color: var(--accent-2);    border: 1px solid rgba(251,191,36,0.35); }
+.badge-green  { background: rgba(52,211,153,0.15); color: var(--success);     border: 1px solid rgba(52,211,153,0.35); }
 
 /* ── Input & Buttons ── */
 .stTextInput > div > div > input,
@@ -169,14 +170,50 @@ h1, h2, h3, h4, h5, h6 {
     font-family: 'JetBrains Mono', monospace !important;
 }
 
+.stTextInput > div > div > input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1 !important;
+}
+
+.stSelectbox div[data-baseweb="select"] * {
+    color: var(--text) !important;
+}
+
 .stTextInput > div > div > input:focus {
     border-color: var(--accent) !important;
-    box-shadow: 0 0 0 2px rgba(124,58,237,0.2) !important;
+    box-shadow: 0 0 0 2px rgba(20,184,166,0.25) !important;
+}
+
+/* File uploader */
+[data-testid="stFileUploader"] section {
+    background: var(--surface-2) !important;
+    border: 1px dashed var(--border) !important;
+    border-radius: 8px !important;
+}
+
+[data-testid="stFileUploader"] section * {
+    color: var(--text) !important;
+}
+
+[data-testid="stFileUploader"] small {
+    color: var(--text-muted) !important;
+}
+
+/* Expander */
+[data-testid="stExpander"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+}
+
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] summary * {
+    color: var(--accent-glow) !important;
 }
 
 .stButton > button {
-    background: linear-gradient(135deg, var(--accent), #5b21b6) !important;
-    color: white !important;
+    background: linear-gradient(135deg, var(--accent), #0f766e) !important;
+    color: #041014 !important;
     border: none !important;
     border-radius: 8px !important;
     font-family: 'Syne', sans-serif !important;
@@ -188,15 +225,26 @@ h1, h2, h3, h4, h5, h6 {
     text-transform: uppercase !important;
 }
 
+.stButton > button p,
+.stButton > button span {
+    color: #041014 !important;
+}
+
 .stButton > button:hover {
     transform: translateY(-1px) !important;
-    box-shadow: 0 8px 25px rgba(124,58,237,0.4) !important;
+    box-shadow: 0 8px 25px rgba(20,184,166,0.4) !important;
 }
 
 /* Secondary button */
 .stButton > button[kind="secondary"] {
     background: var(--surface-2) !important;
     border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+}
+
+.stButton > button[kind="secondary"] p,
+.stButton > button[kind="secondary"] span {
+    color: var(--text) !important;
 }
 
 /* ── Progress / Status ── */
@@ -259,13 +307,14 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.85rem;
     line-height: 1.6;
     max-width: 90%;
+    color: var(--text);
 }
 
 .user-label  { color: var(--accent-glow); }
 .bot-label   { color: var(--accent-2); }
 
-.user-bubble { background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.25); align-self: flex-end; }
-.bot-bubble  { background: rgba(6,182,212,0.1);  border: 1px solid rgba(6,182,212,0.2);   align-self: flex-start; }
+.user-bubble { background: rgba(20,184,166,0.16); border: 1px solid rgba(20,184,166,0.35); align-self: flex-end; }
+.bot-bubble  { background: rgba(251,191,36,0.10); border: 1px solid rgba(251,191,36,0.28); align-self: flex-start; }
 
 /* ── Divider ── */
 hr {
@@ -284,7 +333,7 @@ hr {
     line-height: 1.8;
     max-height: 300px;
     overflow-y: auto;
-    color: var(--text-muted);
+    color: #cfe3e8;
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -336,7 +385,17 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown('<span class="badge badge-purple">Input</span>', unsafe_allow_html=True)
-    source = st.text_input("YouTube URL or File Path", placeholder="https://youtube.com/watch?v=... or /path/to/file.mp4")
+
+    source = st.text_input(
+        "🔗 YouTube URL",
+        placeholder="https://youtube.com/watch?v=..."
+    )
+
+    uploaded_file = st.file_uploader(
+        "📁 Upload Local Video / Audio",
+        type=["mp4", "mp3", "wav", "m4a", "flac", "webm", "mov", "avi", "mkv"],
+        help="Upload a video or audio file from your computer."
+    )
 
     language = st.selectbox("Language", ["english", "hinglish"], index=0)
 
@@ -362,8 +421,20 @@ st.markdown("---")
 
 # ── Run Pipeline ────────────────────────────────────────────────────────────────
 if run_btn:
-    if not source.strip():
-        st.error("Please enter a YouTube URL or file path.")
+    # Use the uploaded browser file when provided; otherwise use the YouTube URL.
+    actual_source = source.strip()
+
+    if uploaded_file is not None:
+        os.makedirs("downloads", exist_ok=True)
+        uploaded_path = os.path.join("downloads", uploaded_file.name)
+
+        with open(uploaded_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+        actual_source = uploaded_path
+
+    if not actual_source:
+        st.error("Please enter a YouTube URL or upload a local video/audio file.")
     else:
         st.session_state.pipeline_done = False
         st.session_state.result = None
@@ -377,10 +448,10 @@ if run_btn:
 
         try:
             with progress_placeholder.container():
-                st.info("⚙️ Pipeline running — see sidebar for live status…")
+                st.info("⚙️ Pipeline running — see sidebar for live status...")
 
             update_step("audio", "active")
-            chunks = process_input(source)
+            chunks = process_input(actual_source)
             update_step("audio", "done")
 
             update_step("transcript", "active")
@@ -515,7 +586,7 @@ if st.session_state.result:
         send_btn = st.button("Send →", use_container_width=True)
 
     if send_btn and user_input.strip():
-        with st.spinner("Thinking…"):
+        with st.spinner("Thinking..."):
             answer = ask_question(r["rag_chain"], user_input.strip())
         st.session_state.chat_history.append({"role": "user",      "content": user_input.strip()})
         st.session_state.chat_history.append({"role": "assistant", "content": answer})
@@ -535,7 +606,7 @@ else:
             Ready to Analyse
         </div>
         <div style="color:var(--text-muted);font-size:0.85rem;max-width:380px;line-height:1.7">
-            Paste a YouTube URL or local file path in the sidebar, choose your language, and hit <strong>Analyse</strong> to get started.
+            Paste a YouTube URL or upload a local video/audio file, choose your language, and hit <strong>Analyse</strong> to get started.
         </div>
         <div style="margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
             <span class="badge badge-purple">Transcription</span>
