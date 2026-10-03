@@ -3,21 +3,19 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 
-from core.llm import get_llm, pause
+from core.llm import get_llm
 
 
 def split_transcript(transcript: str) -> list:
-    # chunk_size 3000 -> 10000: lamba video me API calls ~3x kam hoti hain
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=10000,
-        chunk_overlap=300,
+        chunk_size=3000,
+        chunk_overlap=200
     )
-
     return splitter.split_text(transcript)
 
 
 def summarize(transcript: str) -> str:
-    llm = get_llm()
+    llm = get_llm(0.3)
 
     map_prompt = ChatPromptTemplate.from_messages(
         [
@@ -30,17 +28,9 @@ def summarize(transcript: str) -> str:
 
     chunks = split_transcript(transcript)
 
-    if len(chunks) == 1:
-        # Chhota transcript: map step skip, seedha final summary (1 call bachi)
-        combined = chunks[0]
-    else:
-        chunk_summaries = []
-        for i, chunk in enumerate(chunks):
-            print(f"Summarizing chunk {i + 1}/{len(chunks)}...")
-            chunk_summaries.append(map_chain.invoke({"text": chunk}))
-            pause()  # rate limit se bachne ke liye gap
+    chunk_summaries = [map_chain.invoke({"text": chunk}) for chunk in chunks]
 
-        combined = "\n\n".join(chunk_summaries)
+    combined = "\n\n".join(chunk_summaries)
 
     combined_prompt = ChatPromptTemplate.from_messages(
         [
@@ -65,7 +55,7 @@ def summarize(transcript: str) -> str:
 
 
 def generate_title(transcipt: str) -> str:
-    llm = get_llm()
+    llm = get_llm(0.3)
 
     title_chain = (
         RunnablePassthrough()
@@ -84,6 +74,4 @@ def generate_title(transcipt: str) -> str:
         | StrOutputParser()
     )
 
-    result = title_chain.invoke(transcipt[:2000])
-    pause()  # title ke baad agli call (summary) se pehle gap
-    return result
+    return title_chain.invoke(transcipt[:2000])

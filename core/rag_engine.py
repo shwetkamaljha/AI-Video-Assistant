@@ -5,7 +5,6 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 from core.llm import get_llm
 from core.vector_store import build_vector_store, load_vector_store, get_retriever
 
-
 RAG_SYSTEM_PROMPT = """You are an expert meeting assistant. Answer the user's question 
 based ONLY on the meeting transcript context provided below.
 
@@ -22,10 +21,8 @@ def format_docs(docs):
     return "\n\n".join([doc.page_content for doc in docs])
 
 
-def _make_chain(vector_store):
-    retriever = get_retriever(vector_store, k=4)
-
-    llm = get_llm()
+def _make_chain(retriever):
+    llm = get_llm(0.3)
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -35,7 +32,7 @@ def _make_chain(vector_store):
     )
 
     # Full LCEL RAG pipeline
-    rag_chain = (
+    return (
         {
             "context": retriever | RunnableLambda(format_docs),
             "question": RunnablePassthrough(),
@@ -45,18 +42,17 @@ def _make_chain(vector_store):
         | StrOutputParser()
     )
 
-    return rag_chain
-
 
 def build_rag_chain(transcript: str):
     vector_store = build_vector_store(transcript)
-    return _make_chain(vector_store)
+    retriever = get_retriever(vector_store, k=4)
+    return _make_chain(retriever)
 
 
 def load_rag_chain():
     vector_store = load_vector_store()
-    # Pehle yahan get_retriever() bina vector_store ke call ho raha tha (bug) - fix kar diya
-    return _make_chain(vector_store)
+    retriever = get_retriever(vector_store, k=4)  # bug fix: vector_store pass kiya
+    return _make_chain(retriever)
 
 
 def ask_question(rag_chain, question: str) -> str:

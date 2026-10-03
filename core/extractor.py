@@ -4,11 +4,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 
-from core.llm import get_llm, pause
+from core.llm import get_llm
 
 
 def build_chain(system_prompt: str):
-    llm = get_llm(temperature=0.2)
+    llm = get_llm(0.2)
     return (
         RunnablePassthrough()
         | RunnableLambda(lambda x: {"text": x})
@@ -32,10 +32,7 @@ def extract_action_items(transcript: str) -> str:
         "- Deadline (if mentioned, else write 'Not specified')\n\n"
         "Format as a numbered list. If none found say 'No action items found.'"
     )
-
-    result = chain.invoke(transcript)
-    pause()  # agli call se pehle gap
-    return result
+    return chain.invoke(transcript)
 
 
 def extract_key_decisions(transcript: str) -> str:
@@ -44,10 +41,7 @@ def extract_key_decisions(transcript: str) -> str:
         "extract all key decisions made. Format as a numbered list. "
         "If none found say 'No key decisions found.'"
     )
-
-    result = chain.invoke(transcript)
-    pause()  # agli call se pehle gap
-    return result
+    return chain.invoke(transcript)
 
 
 def extract_questions(transcript: str) -> str:
@@ -56,7 +50,4 @@ def extract_questions(transcript: str) -> str:
         "or topics needing follow-up. Format as a numbered list. "
         "If none found say 'No open questions found.'"
     )
-
-    result = chain.invoke(transcript)
-    pause()
-    return result
+    return chain.invoke(transcript)
