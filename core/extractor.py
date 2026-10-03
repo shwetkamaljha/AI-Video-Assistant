@@ -1,53 +1,40 @@
-# Action items, decisions, questions
+# Action items, decisions, questions (separate functions, main.py / test.py ke liye)
 
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
-
-from core.llm import get_llm
+from core.llm import call_llm
 
 
-def build_chain(system_prompt: str):
-    llm = get_llm(0.2)
-    return (
-        RunnablePassthrough()
-        | RunnableLambda(lambda x: {"text": x})
-        | ChatPromptTemplate.from_messages(
-            [
-                ("system", system_prompt),
-                ("human", "{text}"),
-            ]
-        )
-        | llm
-        | StrOutputParser()
+def _run(system_prompt: str, transcript: str) -> str:
+    return call_llm(
+        [("system", system_prompt), ("human", transcript)],
+        temperature=0.2,
     )
 
 
 def extract_action_items(transcript: str) -> str:
-    chain = build_chain(
+    return _run(
         "You are an expert meeting analyst. From the meeting transcript, "
         "extract all action items. For each provide:\n"
         "- Task description\n"
         "- Owner (who is responsible)\n"
         "- Deadline (if mentioned, else write 'Not specified')\n\n"
-        "Format as a numbered list. If none found say 'No action items found.'"
+        "Format as a numbered list. If none found say 'No action items found.'",
+        transcript,
     )
-    return chain.invoke(transcript)
 
 
 def extract_key_decisions(transcript: str) -> str:
-    chain = build_chain(
+    return _run(
         "You are an expert meeting analyst. From the meeting transcript, "
         "extract all key decisions made. Format as a numbered list. "
-        "If none found say 'No key decisions found.'"
+        "If none found say 'No key decisions found.'",
+        transcript,
     )
-    return chain.invoke(transcript)
 
 
 def extract_questions(transcript: str) -> str:
-    chain = build_chain(
+    return _run(
         "From the meeting transcript, extract all unresolved questions "
         "or topics needing follow-up. Format as a numbered list. "
-        "If none found say 'No open questions found.'"
+        "If none found say 'No open questions found.'",
+        transcript,
     )
-    return chain.invoke(transcript)
